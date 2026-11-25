@@ -59,3 +59,22 @@ FPGA-Smart-Vending-Machine-Controller/
 3. **`S_CHECK_FUNDS` (`5'b00100`):** Evaluates stock availability (`stock[latched_item] > 0`) and compares effective balance against `latched_price`. Routes to `S_DISPENSE` if valid, or returns to `S_ACCUMULATE`/`S_IDLE` if funds are insufficient or the item is out of stock.
 4. **`S_DISPENSE` (`5'b01000`):** Pulses the one-hot dispense actuator for the selected item, deducts `latched_price` from `balance`, and decrements the item's inventory counter.
 5. **`S_RETURN` (`5'b10000`):** Transfers any remaining balance (excess change or cancelled refund) to `change_out`, resets `balance` to `0`, and returns to `S_IDLE`.
+### State Transition Diagram
+
+```text
+[ S_IDLE ] ──(coin_valid)──> [ S_ACCUMULATE ] <──(insufficient / out_of_stock)──┐
+     │                              │                                            │
+ (sel_valid)               (sel_valid) / (cancel_btn)                            │
+     │                        │               │                                  │
+     └──────────────> [ S_CHECK_FUNDS ]       │                                  │
+                              │               │                                  │
+                    (in_stock & bal >= price) │                                  │
+                              │               │                                  │
+                              v               │                                  │
+                       [ S_DISPENSE ]         │                                  │
+                              │               │                                  │
+                              v               v                                  │
+                       [ S_RETURN ] <─────────┘                                  │
+                              │                                                  │
+                              └────────────────────> [ S_IDLE ] ─────────────────┘
+```
