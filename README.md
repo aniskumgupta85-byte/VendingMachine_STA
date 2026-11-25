@@ -53,3 +53,9 @@ FPGA-Smart-Vending-Machine-Controller/
 * **3-Block FSM Partitioning:** Separates sequential state registers (BLOCK 1), combinational next-state logic (BLOCK 2), and synchronous datapath/output registers (BLOCK 3) for clean synthesis and zero inferred latches.
 * **One-Hot State Encoding:** Uses 5-bit one-hot encoding (`5'b00001` – `5'b10000`) to minimize next-state decoding LUT depth on flip-flop-rich FPGA architectures.
 * **Input Latching & Glitch-Free Outputs:** Captures `item_sel` and `decoded_price` upon `sel_valid` so button releases do not corrupt active comparisons, while all external control/actuator outputs are registered on `posedge clk` to prevent combinational switching hazards.
+### State Descriptions
+1. **`S_IDLE` (`5'b00001`):** Default reset state. Waits for a valid coin strobe (`coin_valid`) or item selection strobe (`sel_valid`), clearing previous change and status flags when a new transaction begins.
+2. **`S_ACCUMULATE` (`5'b00010`):** Adds incoming coin values (5 or 10 units) to the running balance register (with 8-bit overflow protection) while monitoring `sel_valid` or `cancel_btn`.
+3. **`S_CHECK_FUNDS` (`5'b00100`):** Evaluates stock availability (`stock[latched_item] > 0`) and compares effective balance against `latched_price`. Routes to `S_DISPENSE` if valid, or returns to `S_ACCUMULATE`/`S_IDLE` if funds are insufficient or the item is out of stock.
+4. **`S_DISPENSE` (`5'b01000`):** Pulses the one-hot dispense actuator for the selected item, deducts `latched_price` from `balance`, and decrements the item's inventory counter.
+5. **`S_RETURN` (`5'b10000`):** Transfers any remaining balance (excess change or cancelled refund) to `change_out`, resets `balance` to `0`, and returns to `S_IDLE`.
