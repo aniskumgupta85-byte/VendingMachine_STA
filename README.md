@@ -45,3 +45,10 @@ FPGA-Smart-Vending-Machine-Controller/
     ├── vivado_schematic.png           # Synthesized/Implemented design schematic
     ├── simulation_results.png         # Waveform & Tcl console PASS/FAIL log
     └── timing_summary.png             # Vivado Design Timing Summary report
+    Architecture & FSM Design
+Hardware Design Choices
+-> 3-Block FSM Partitioning: Separates sequential state registers (BLOCK 1), combinational next-state logic (BLOCK 2), and synchronous datapath/output registers (BLOCK 3) for clean synthesis and zero inferred latches.
+
+->One-Hot State Encoding: Uses 5-bit one-hot encoding (5'b00001 – 5'b10000) to minimize next-state decoding LUT depth on flip-flop-rich FPGA architectures.
+
+->Input Latching & Glitch-Free Outputs: Captures item_sel and decoded_price upon sel_valid so button releases do not corrupt active comparisons, while all external control/actuator outputs are registered on posedge clk to prevent combinational switching hazards.
